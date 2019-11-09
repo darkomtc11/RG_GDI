@@ -18,7 +18,7 @@
 #define new DEBUG_NEW
 #endif
 
-# define M_PI 3.141592653589793238462643383279502884L
+# define M_PI 3.141592653589793238462643383279502884
 
 using namespace std;
 // CVezba1View
@@ -216,11 +216,7 @@ void CVezba1View::DrawTrapezoid(CPoint topP, CPoint bottomP, int top, int bottom
 
 void CVezba1View::SetRotation(float r)
 {
-	int prevMode = SetGraphicsMode(pdc->m_hDC, GM_ADVANCED);
-	DWORD dw = GetLastError();
-
-	XFORM Xform, XformOld;
-	BOOL b = GetWorldTransform(pdc->m_hDC, &XformOld);
+	XFORM Xform;
 	r = r * (M_PI / 180);
 
 	Xform.eM11 = (FLOAT)cos(r);
@@ -230,14 +226,26 @@ void CVezba1View::SetRotation(float r)
 	Xform.eDx = (FLOAT)1.0;
 	Xform.eDy = (FLOAT)1.0;
 
-	b = ModifyWorldTransform(pdc->m_hDC, &Xform, MWT_LEFTMULTIPLY);
-	dw = GetLastError();
-	//return XformOld;
+	ModifyWorldTransform(pdc->m_hDC, &Xform, MWT_LEFTMULTIPLY);
+}
+
+void CVezba1View::SetTranlate(float x, float y)
+{
+	XFORM Xform;
+
+	Xform.eM11 = (FLOAT)1.0;
+	Xform.eM12 = (FLOAT)0.0;
+	Xform.eM21 = (FLOAT)0.0;
+	Xform.eM22 = (FLOAT)1.0;
+	Xform.eDx = x;
+	Xform.eDy = y;
+
+	ModifyWorldTransform(pdc->m_hDC, &Xform, MWT_LEFTMULTIPLY);
 }
 
 void CVezba1View::OnDraw(CDC* pDC)
 {
-	//SetGraphicsMode(pDC->m_hDC, GM_ADVANCED);
+	SetGraphicsMode(pDC->m_hDC, GM_ADVANCED);
 	CVezba1Doc* pDoc = GetDocument();
 	ASSERT_VALID(pDoc);
 	if (!pDoc)
@@ -253,10 +261,9 @@ void CVezba1View::OnDraw(CDC* pDC)
 
 	pdc = pDC;
 
-
-
 	DrawGrid();
 	//SetRotation(5);
+	SetTranlate(566, 50);
 	CPen pen(0, 5, RGB(0, 255, 255));
 	CPen tirq(0, 5, RGB(0, 255, 255));
 	CPen bluep(0, 6, RGB(0, 0, 255));
@@ -326,23 +333,6 @@ void CVezba1View::OnDraw(CDC* pDC)
 	DrawTrapezoid(cover1, cover1, 88, 88, &redp, &red);
 	DrawTrapezoid(cover2, cover2, 88, 88, &redp, &red);
 
-	/*if (m_bHit)
-	{
-		int x = 300;
-		int y = 300;
-		CPoint a = CPoint(x, y);
-		CPen threePxSolidBlackPen(0, 3, RGB(0, 0, 0));
-		CBrush red(RGB(255, 0, 0));
-		CBrush* oldBrush = (CBrush*)pDC->SelectObject(&red);
-		CPen* oldPen = (CPen*)pDC->SelectObject(&threePxSolidBlackPen);
-		pDC->Rectangle(m_fioka);
-
-		pDC->SelectObject(oldBrush);
-		pDC->SelectObject(oldPen);
-	}
-	else
-		pDC->Rectangle(m_fioka);*/
-		// TODO: add draw code for native data here
 }
 
 

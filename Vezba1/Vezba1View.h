@@ -28,6 +28,7 @@ public:
 	void DrawHalf(int, int, CPoint, int);
 	void DrawTrapezoid(CPoint, CPoint, int, int, CPen*, CBrush*);
 	void SetRotation(float);
+	void SetTranlate(float, float);
 	// Overrides
 public:
 	virtual void OnDraw(CDC* pDC);  // overridden to draw this view
