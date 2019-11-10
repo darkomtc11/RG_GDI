@@ -73,7 +73,8 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 		return FALSE;
 	// TODO: Modify the Window class or styles here by modifying
 	//  the CREATESTRUCT cs
-
+	cs.cx = ::GetSystemMetrics(SM_CXSCREEN) - 1000;
+	cs.cy = ::GetSystemMetrics(SM_CYSCREEN) - 150;
 	return TRUE;
 }
 

@@ -32,6 +32,7 @@ BEGIN_MESSAGE_MAP(CVezba1View, CView)
 	ON_COMMAND(ID_FILE_PRINT_PREVIEW, &CView::OnFilePrintPreview)
 	//	ON_WM_KEYDOWN()
 //	ON_WM_LBUTTONDOWN()
+ON_WM_KEYDOWN()
 END_MESSAGE_MAP()
 
 // CVezba1View construction/destruction
@@ -40,6 +41,21 @@ CVezba1View::CVezba1View() noexcept
 {
 	// TODO: add construction code here
 	baseLength = 50;
+
+
+	LOGBRUSH logBrush;
+	logBrush.lbStyle = BS_HATCHED;
+	logBrush.lbColor = RGB(0, 255, 255);
+	logBrush.lbHatch = HS_VERTICAL;
+
+	pattern1.CreateBrushIndirect(&logBrush);
+
+	logBrush.lbHatch = HS_HORIZONTAL;
+
+	pattern2.CreateBrushIndirect(&logBrush);
+
+	LPCSTR WMFname = LPCSTR("D:\\Faculty\\RG\\RG_GDI\\Vezba1\\LAB II - GDI - opruga.emf");
+	Meta = GetEnhMetaFileA(WMFname);
 }
 
 CVezba1View::~CVezba1View()
@@ -58,20 +74,24 @@ BOOL CVezba1View::PreCreateWindow(CREATESTRUCT& cs)
 
 void CVezba1View::DrawGrid()
 {
-	CPen pen(0, 2, RGB(150, 150, 150));
+	CPen* pen = new CPen(0, 2, RGB(150, 150, 150));
 	CPen* oldPen = (CPen*)pdc->SelectObject(&pen);
 
-	int maxSize = 1200;
+	int maxSize = 1000;
 	for (int i = 0; i <= maxSize / baseLength; i++)
 	{
+		if (i % 5 == 0 && false) {
+			pen = new CPen(0, 2, RGB(255, 0, 0));
+			oldPen = (CPen*)pdc->SelectObject(pen);
+		}
 		pdc->MoveTo(0, i * baseLength);
 		pdc->LineTo(maxSize, i * baseLength);
 
 		pdc->MoveTo(i * baseLength, 0);
 		pdc->LineTo(i * baseLength, maxSize);
-	}
 
-	pdc->SelectObject(oldPen);
+		pdc->SelectObject(oldPen);
+	}
 }
 
 void CVezba1View::DrawShape(eCustomShape shape, eShapeSize size, CPoint point, int angle, bool half, CPen* pen, CBrush* brush)
@@ -173,18 +193,7 @@ void CVezba1View::DrawHalf(int sides, int r, CPoint point, int angle)
 		Py2 = float(Py2 - 2 * y22);
 	}
 
-	//CPen* oldPen;
-	//CBrush* oldBrush;
-	//CPen* pen = new CPen(0, 10, RGB(255, 0, 0));
-	//oldPen = pdc->SelectObject(pen);
-
-	//CBrush* brush = new CBrush(RGB(0, 0, 255));
-	//oldBrush = pdc->SelectObject(brush);
-
 	pdc->Polygon(points, sides + 2);
-
-	//pdc->SelectObject(oldPen);
-	//pdc->SelectObject(oldBrush);
 }
 
 void CVezba1View::DrawTrapezoid(CPoint topP, CPoint bottomP, int top, int bottom, CPen* pen, CBrush* brush)
@@ -203,9 +212,7 @@ void CVezba1View::DrawTrapezoid(CPoint topP, CPoint bottomP, int top, int bottom
 	points[3].x = bottomP.x - bottom / 2;
 	points[3].y = bottomP.y;
 
-	//CPen pen(0, 4, RGB(0, 120, 0));
 	CPen* oldPen = (CPen*)pdc->SelectObject(pen);
-	//CBrush brush(RGB(255, 255, 0));
 	CBrush* oldBrush = (CBrush*)pdc->SelectObject(brush);
 
 	pdc->Polygon(points, 4);
@@ -214,7 +221,7 @@ void CVezba1View::DrawTrapezoid(CPoint topP, CPoint bottomP, int top, int bottom
 	pdc->SelectObject(oldBrush);
 }
 
-void CVezba1View::SetRotation(float r)
+void CVezba1View::SetRotation(float r, bool modify = true)
 {
 	XFORM Xform;
 	r = r * (M_PI / 180);
@@ -226,10 +233,17 @@ void CVezba1View::SetRotation(float r)
 	Xform.eDx = (FLOAT)1.0;
 	Xform.eDy = (FLOAT)1.0;
 
-	ModifyWorldTransform(pdc->m_hDC, &Xform, MWT_LEFTMULTIPLY);
+	if (modify)
+	{
+		ModifyWorldTransform(pdc->m_hDC, &Xform, MWT_LEFTMULTIPLY);
+	}
+	else
+	{
+		SetWorldTransform(pdc->m_hDC, &Xform);
+	}
 }
 
-void CVezba1View::SetTranlate(float x, float y)
+void CVezba1View::SetTranlation(float x, float y, bool modify = true)
 {
 	XFORM Xform;
 
@@ -240,7 +254,81 @@ void CVezba1View::SetTranlate(float x, float y)
 	Xform.eDx = x;
 	Xform.eDy = y;
 
-	ModifyWorldTransform(pdc->m_hDC, &Xform, MWT_LEFTMULTIPLY);
+	if (modify)
+	{
+		ModifyWorldTransform(pdc->m_hDC, &Xform, MWT_LEFTMULTIPLY);
+	}
+	else
+	{
+		SetWorldTransform(pdc->m_hDC, &Xform);
+	}
+}
+
+CPoint CVezba1View::DrawBase(CPoint t, float angle)
+{
+	SetTranlation(t.x, t.y);
+	SetRotation(angle);
+	CPoint point(0, 0);
+	CPoint point2(point.x, point.y + 50);
+	CPoint point3(point.x, point.y + 100);
+	CPoint point4(point.x, point.y + 150);
+
+	DrawShape(CSOctagon, SSM, point, 0, false, bluep, red);
+	DrawTrapezoid(point, point2, 100, 100, bluep, red);
+	DrawTrapezoid(point2, point3, 100, 200, bluep, red);
+	DrawTrapezoid(point3, point4, 300, 300, bluep, purple);
+
+	DrawTrapezoid(point, point, 88, 88, redp, red);
+	DrawTrapezoid(point2, point2, 88, 88, redp, red);
+
+	return point;
+}
+
+CPoint CVezba1View::DrawSmallArm(CPoint t, float angle)
+{
+	SetTranlation(t.x, t.y);
+	SetRotation(angle);
+	CPoint point(0, 0);
+	CPoint point2(point.x, point.y - 375);
+	DrawTrapezoid(point2, point, 50, 100, bluep, &pattern1);
+
+	DrawShape(CSDiamond, SSM, point2, 90, false, bluep, blue);
+	DrawShape(CSDiamond, SSS, point2, 90, false, bluep, blue);
+	DrawShape(CSDiamond, SSL, point, 90, false, bluep, blue);
+	DrawShape(CSDiamond, SSS, point, 90, false, bluep, blue);
+
+	PlayEnhMetaFile(pdc->m_hDC, Meta, CRect(point.x - 75, point.y + 15, point2.x + 75, point2.y - 15));
+
+	return point2;
+}
+
+CPoint CVezba1View::DrawBigArm(CPoint t, float angle)
+{
+	SetTranlation(t.x, t.y);
+	SetRotation(angle);
+	CPoint point(0, 0);
+	CPoint point2(point.x, point.y - 500);
+	DrawTrapezoid(point2, point, 50, 150, tirq, red);
+
+	DrawShape(CSHexagon, SSM, point2, 30, false, tirq, purple);
+	DrawShape(CSHexagon, SSS, point2, 30, false, tirq, purple);
+	DrawShape(CSHexagon, SSXL, point, 30, false, tirq, purple);
+	DrawShape(CSHexagon, SSS, point, 30, false, tirq, purple);
+
+	PlayEnhMetaFile(pdc->m_hDC, Meta, CRect(point.x - 100, point.y + 15, point2.x + 100, point2.y + 15));
+
+	return point2;
+}
+
+void CVezba1View::DrawHand(CPoint t, bool first, float angle)
+{
+	SetTranlation(t.x, t.y);
+	SetRotation(angle);
+	CPoint point(0, 0);
+	CPoint point2(point.x, point.y + 55);
+
+	DrawShape(CSDiamond, SSM, point2, first ? 180 : 0, true, yellow, &pattern2);
+	DrawShape(CSCircle, SSS, point, 0, false, yellow, &pattern2);
 }
 
 void CVezba1View::OnDraw(CDC* pDC)
@@ -255,83 +343,25 @@ void CVezba1View::OnDraw(CDC* pDC)
 
 	GetClientRect(&rect);
 	pDC->SetMapMode(MM_ANISOTROPIC);
-	pDC->SetWindowExt(2000, 2000);
-	pDC->SetViewportExt(rect.right, rect.bottom);
-	pDC->SetWindowOrg(-500, -500);
+	pDC->SetWindowExt(1000, 1000);
+	pDC->SetViewportExt(min(rect.right, rect.bottom), min(rect.right, rect.bottom));
+	pDC->SetWindowOrg(-(rect.right - min(rect.right, rect.bottom) )/2, -(rect.bottom - min(rect.right, rect.bottom))/2);
 
 	pdc = pDC;
 
 	DrawGrid();
-	//SetRotation(5);
-	SetTranlate(566, 50);
-	CPen pen(0, 5, RGB(0, 255, 255));
-	CPen tirq(0, 5, RGB(0, 255, 255));
-	CPen bluep(0, 6, RGB(0, 0, 255));
-	CPen redp(0, 7, RGB(255, 0, 0));
-	CPen yellow(0, 5, RGB(255, 255, 0));
 
-	CBrush brush(RGB(255, 0, 255));
-	CBrush purple(RGB(255, 0, 255));
-	CBrush red(RGB(255, 0, 0));
-	CBrush blue(RGB(0, 0, 255));
+	CPoint point(850, 150);
 
+	CPoint hand = DrawSmallArm(DrawBigArm(DrawBase(point, 180), 0 + bigArmAngle), 90 + smallArmAngle);
+	DrawHand(hand, true, 180 + handAngle);
+	DrawHand(CPoint(0, 0), false, 0 - 2 * handAngle);
 
-	LOGBRUSH logBrush;
-	logBrush.lbStyle = BS_HATCHED;
-	logBrush.lbColor = RGB(0, 255, 255);
-	logBrush.lbHatch = HS_VERTICAL;
+	/*SetTranlation(0, 0, false);
+	SetRotation(0, false);
 
-	CBrush pattern1;
-	pattern1.CreateBrushIndirect(&logBrush);
-
-	logBrush.lbHatch = HS_HORIZONTAL;
-
-	CBrush pattern2;
-	pattern2.CreateBrushIndirect(&logBrush);
-
-
-	CPoint arm1Top(150, 900);
-	CPoint arm1Bottom(150, 400);
-
-	CPoint arm2Top(500, 775);
-	CPoint arm2Bottom(500, 400);
-
-
-
-	DrawTrapezoid(arm1Top, arm1Bottom, 50, 150, &tirq, &red);
-	DrawTrapezoid(arm2Top, arm2Bottom, 50, 100, &bluep, &pattern1);
-
-	DrawShape(CSHexagon, SSM, arm1Top, 30, false, &tirq, &purple);
-	DrawShape(CSHexagon, SSS, arm1Top, 30, false, &tirq, &purple);
-	DrawShape(CSHexagon, SSXL, arm1Bottom, 30, false, &tirq, &purple);
-	DrawShape(CSHexagon, SSS, arm1Bottom, 30, false, &tirq, &purple);
-
-	DrawShape(CSDiamond, SSM, arm2Top, 90, false, &bluep, &blue);
-	DrawShape(CSDiamond, SSS, arm2Top, 90, false, &bluep, &blue);
-	DrawShape(CSDiamond, SSL, arm2Bottom, 90, false, &bluep, &blue);
-	DrawShape(CSDiamond, SSS, arm2Bottom, 90, false, &bluep, &blue);
-
-	CPoint half(800, 550);
-	CPoint left(800, 500 - 5);
-
-	DrawShape(CSDiamond, SSM, half, 180, true, &yellow, &pattern2);
-	DrawShape(CSCircle, SSS, left, 0, false, &yellow, &pattern2);
-
-	CPoint baseTop(800, 800);
-	CPoint baseMid(800, 850);
-	CPoint baseBottom1(800, 900);
-	CPoint baseBottom2(800, 950);
-
-	DrawShape(CSOctagon, SSM, baseTop, 0, false, &bluep, &red);
-	DrawTrapezoid(baseTop, baseMid, 100, 100, &bluep, &red);
-	DrawTrapezoid(baseMid, baseBottom1, 100, 200, &bluep, &red);
-	DrawTrapezoid(baseBottom1, baseBottom2, 300, 300, &bluep, &purple);
-
-	CPoint cover1(800, 800);
-	CPoint cover2(800, 850);
-
-	DrawTrapezoid(cover1, cover1, 88, 88, &redp, &red);
-	DrawTrapezoid(cover2, cover2, 88, 88, &redp, &red);
+	pdc->MoveTo(CPoint(300, 300));
+	pdc->LineTo(CPoint(500, 500));*/
 
 }
 
@@ -378,3 +408,21 @@ CVezba1Doc* CVezba1View::GetDocument() const // non-debug version is inline
 
 // CVezba1View message handlers
 
+
+
+void CVezba1View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	// TODO: Add your message handler code here and/or call default
+
+	switch (nChar) {
+	case 'q':case 'Q': bigArmAngle = (int)(bigArmAngle - 5) % 360; break;
+	case 'w':case 'W': bigArmAngle = (int)(bigArmAngle + 5) % 360; break;
+	case 'e':case 'E': smallArmAngle = (int)(smallArmAngle - 5) % 360; break;
+	case 'r':case 'R': smallArmAngle = (int)(smallArmAngle + 5) % 360; break;
+	case 't':case 'T': handAngle = (int)(handAngle - 5) % 360; break;
+	case 'y':case 'Y': handAngle = (int)(handAngle + 5) % 360; break;
+	}
+
+	Invalidate();
+	//CView::OnKeyDown(nChar, nRepCnt, nFlags);
+}
