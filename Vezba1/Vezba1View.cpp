@@ -54,7 +54,7 @@ CVezba1View::CVezba1View() noexcept
 
 	pattern2.CreateBrushIndirect(&logBrush);
 
-	LPCSTR WMFname = LPCSTR("D:\\Faculty\\RG\\RG_GDI\\Vezba1\\LAB II - GDI - opruga.emf");
+	LPCSTR WMFname = LPCSTR("LAB II - GDI - opruga.emf");
 	Meta = GetEnhMetaFileA(WMFname);
 }
 
@@ -343,9 +343,12 @@ void CVezba1View::OnDraw(CDC* pDC)
 
 	GetClientRect(&rect);
 	pDC->SetMapMode(MM_ANISOTROPIC);
-	pDC->SetWindowExt(1000, 1000);
+	pDC->SetWindowExt(1001, 1001);
 	pDC->SetViewportExt(min(rect.right, rect.bottom), min(rect.right, rect.bottom));
-	pDC->SetWindowOrg(-(rect.right - min(rect.right, rect.bottom) )/2, -(rect.bottom - min(rect.right, rect.bottom))/2);
+
+	float multi = (float)1001 / min(rect.right, rect.bottom);
+
+	pDC->SetWindowOrg(-(rect.right - min(rect.right, rect.bottom)) / 2 * multi, -(rect.bottom - min(rect.right, rect.bottom)) / 2 * multi);
 
 	pdc = pDC;
 
