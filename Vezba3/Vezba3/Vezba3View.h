@@ -34,6 +34,7 @@ public:
 	void SetTranlation(float, float, bool);
 	void MirrorVertical(bool);
 	void DrawGrid();
+	CBitmap* HatchImage(BITMAP, CBitmap*, Hatch);
 	void DrawImage(int, int, int, Hatch);
 
 // Overrides

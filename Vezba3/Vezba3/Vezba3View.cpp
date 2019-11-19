@@ -122,6 +122,110 @@ void CVezba3View::DrawGrid()
 	pdc->SelectObject(oldPen);
 }
 
+CBitmap* CVezba3View::HatchImage(BITMAP bm, CBitmap *bmpImage, Hatch hatch)
+{
+	BYTE* bmpBuffer = (BYTE*)GlobalAlloc(GPTR, bm.bmWidthBytes * bm.bmHeight);
+	bmpImage->GetBitmapBits(bm.bmWidthBytes * bm.bmHeight, bmpBuffer);
+
+	for (int i = 0; i < bm.bmHeight; i++)
+	{
+		for (int j = 0; j < bm.bmWidth; j++)
+		{
+			BYTE* pixel = bmpBuffer + (i * 4 * bm.bmWidth + j * 4);
+			switch (hatch.type)
+			{
+			case 0:
+				pixel[0] &= hatch.b;
+				pixel[1] &= hatch.g;
+				pixel[2] &= hatch.r;
+				break;
+			case 1:
+				if (25 > i % 50) {
+					pixel[0] &= hatch.b;
+					pixel[1] &= hatch.g;
+					pixel[2] &= hatch.r;
+				}
+				break;
+			case 2:
+				if (25 > j % 50) {
+					pixel[0] &= hatch.b;
+					pixel[1] &= hatch.g;
+					pixel[2] &= hatch.r;
+				}
+				break;
+			case 3:
+				if (25 > i % 50 && 25 > j % 50 ||
+					25 < i % 50 && 25 < j % 50) {
+					pixel[0] &= hatch.b;
+					pixel[1] &= hatch.g;
+					pixel[2] &= hatch.r;
+				}
+				break;
+			case 4:
+				if (25 < i % 50 && 25 > j % 50 ||
+					25 > i % 50 && 25 < j % 50) {
+					pixel[0] &= hatch.b;
+					pixel[1] &= hatch.g;
+					pixel[2] &= hatch.r;
+				}
+				break;
+			case 5:
+				if (25 < (i - j + bm.bmWidth) % 50) {
+					pixel[0] &= hatch.b;
+					pixel[1] &= hatch.g;
+					pixel[2] &= hatch.r;
+				}
+				break;
+			case 6:
+				if (25 > (i + j + bm.bmWidth) % 50) {
+					pixel[0] &= hatch.b;
+					pixel[1] &= hatch.g;
+					pixel[2] &= hatch.r;
+				}
+				break;
+			case 7:
+				if ((25 > (i - j) % 50) && (j <= bm.bmWidth / 2) ||
+					(25 < (i + j) % 50) && (j > bm.bmWidth / 2)) {
+					pixel[0] &= hatch.b;
+					pixel[1] &= hatch.g;
+					pixel[2] &= hatch.r;
+				}
+				break;
+			case 8:
+				if ((25 > (i + j) % 50) && (j <= bm.bmWidth / 2) ||
+					(25 < (i - j) % 50) && (j > bm.bmWidth / 2)) {
+					pixel[0] &= hatch.b;
+					pixel[1] &= hatch.g;
+					pixel[2] &= hatch.r;
+				}
+				break;
+			case 9:
+				if ((25 < (i - j + 25) % 50) && (j <= bm.bmWidth / 2) ||
+					(25 < (i + j + 25) % 50) && (j > bm.bmWidth / 2)) {
+					pixel[0] &= hatch.b;
+					pixel[1] &= hatch.g;
+					pixel[2] &= hatch.r;
+				}
+				break;
+			case 10:
+				if ((25 > (i + j) % 50) && (j <= bm.bmWidth / 2) ||
+					(25 > (i - j) % 50) && (j > bm.bmWidth / 2)) {
+					pixel[0] &= hatch.b;
+					pixel[1] &= hatch.g;
+					pixel[2] &= hatch.r;
+				}
+				break;
+			default:
+				break;
+			}
+		}
+	}
+
+	bmpImage->SetBitmapBits(bm.bmWidthBytes * bm.bmHeight, bmpBuffer);
+
+	return bmpImage;
+}
+
 void CVezba3View::DrawImage(int image, int x, int y, Hatch hatch)
 {
 	CBitmap bmpImage;
@@ -165,109 +269,10 @@ void CVezba3View::DrawImage(int image, int x, int y, Hatch hatch)
 	pdc->BitBlt(x, y, bm.bmWidth, bm.bmHeight, MemDC, 0, 0, SRCAND);
 
 
-	BYTE* bmpBuffer = (BYTE*)GlobalAlloc(GPTR, bm.bmWidthBytes * bm.bmHeight);
-	bmpImage.GetBitmapBits(bm.bmWidthBytes * bm.bmHeight, bmpBuffer);
 
-	
+	CBitmap* hatched = HatchImage(bm, &bmpImage, hatch);
 
-	for (int i = 0; i < bm.bmHeight; i++)
-	{
-		for (int j = 0; j < bm.bmWidth; j++)
-		{
-			BYTE* pixel = bmpBuffer + (i * 4 * bm.bmWidth + j * 4);
-			switch (hatch.type)
-			{
-			case 0:
-				pixel[0] = pixel[0] & hatch.b;
-				pixel[1] = pixel[1] & hatch.g;
-				pixel[2] = pixel[2] & hatch.r;
-				break;
-			case 1:
-				if (25 > i % 50) {
-					pixel[0] = pixel[0] & hatch.b;
-					pixel[1] = pixel[1] & hatch.g;
-					pixel[2] = pixel[2] & hatch.r;
-				}
-				break;
-			case 2:
-				if (25 > j % 50) {
-					pixel[0] = pixel[0] & hatch.b;
-					pixel[1] = pixel[1] & hatch.g;
-					pixel[2] = pixel[2] & hatch.r;
-				}
-				break;
-			case 3:
-				if (25 > i % 50 && 25 > j % 50 ||
-					25 < i % 50 && 25 < j % 50) {
-					pixel[0] = pixel[0] & hatch.b;
-					pixel[1] = pixel[1] & hatch.g;
-					pixel[2] = pixel[2] & hatch.r;
-				}
-				break;
-			case 4:
-				if (25 < i % 50 && 25 > j % 50 ||
-					25 > i % 50 && 25 < j % 50) {
-					pixel[0] = pixel[0] & hatch.b;
-					pixel[1] = pixel[1] & hatch.g;
-					pixel[2] = pixel[2] & hatch.r;
-				}
-				break;
-			case 5:
-				if (25 < (i - j + bm.bmWidth) % 50) {
-					pixel[0] = pixel[0] & hatch.b;
-					pixel[1] = pixel[1] & hatch.g;
-					pixel[2] = pixel[2] & hatch.r;
-				}
-				break;
-			case 6:
-				if (25 > (i + j + bm.bmWidth) % 50) {
-					pixel[0] = pixel[0] & hatch.b;
-					pixel[1] = pixel[1] & hatch.g;
-					pixel[2] = pixel[2] & hatch.r;
-				}
-				break;
-			case 7:
-				if ((25 > (i - j + bm.bmWidth) % 50) && (j <= bm.bmWidth / 2) ||
-					(25 < (i + j + bm.bmWidth) % 50) && (j >= bm.bmWidth / 2)) {
-					pixel[0] = pixel[0] & hatch.b;
-					pixel[1] = pixel[1] & hatch.g;
-					pixel[2] = pixel[2] & hatch.r;
-				}
-				break;
-			case 8:
-				if ((25 > (i + j + bm.bmWidth) % 50) && (j <= bm.bmWidth / 2) || 
-					(25 < (i - j + bm.bmWidth) % 50) && (j >= bm.bmWidth / 2)) {
-					pixel[0] = pixel[0] & hatch.b;
-					pixel[1] = pixel[1] & hatch.g;
-					pixel[2] = pixel[2] & hatch.r;
-				}
-				break;
-			case 9:
-				if ((25 < (i - j + bm.bmWidth) % 50) && (j <= bm.bmWidth / 2) ||
-					(25 < (i + j + bm.bmWidth) % 50) && (j >= bm.bmWidth / 2)) {
-					pixel[0] = pixel[0] & hatch.b;
-					pixel[1] = pixel[1] & hatch.g;
-					pixel[2] = pixel[2] & hatch.r;
-				}
-				break;
-			case 10:
-				if ((25 > (i + j + bm.bmWidth) % 50) && (j <= bm.bmWidth / 2) ||
-					(25 > (i - j + bm.bmWidth) % 50) && (j >= bm.bmWidth / 2)) {
-					pixel[0] = pixel[0] & hatch.b;
-					pixel[1] = pixel[1] & hatch.g;
-					pixel[2] = pixel[2] & hatch.r;
-				}
-				break;
-			default:
-				break;
-			}
-		}
-	}
-
-	bmpImage.SetBitmapBits(bm.bmWidthBytes * bm.bmHeight, bmpBuffer);
-
-
-	MemDC->SelectObject(&bmpImage);
+	MemDC->SelectObject(hatched);
 	pdc->BitBlt(x, y, bm.bmWidth, bm.bmHeight, MemDC, 0, 0, SRCPAINT);
 
 	MemDC->SelectObject(bmpOldT);
@@ -305,51 +310,34 @@ void CVezba3View::OnDraw(CDC* pDC)
 
 	SetTranlation(425.0, 425.0);
 	SetRotation(-90.0);
-	//SetTranlation(-100.0, -37.5);
 	Hatch h;
 	h.type = -1;
 	DrawImage(IDB_BITMAP1, -100.0, -37.5, h);
-	//SetTranlation(+100.0, +37.5);
 
 	h.r = 255;
 	h.g = 0;
 	h.b = 0;
 	h.type = 9;
 	SetRotation(0.0 + bigArmAngle);
-	//SetTranlation(-62.5, -290.0);
 	DrawImage(IDB_BITMAP2, -62.5, -290.0, h);
-	//SetTranlation(+62.5, +290.0);
 
-	
 	h.r = 0;
 	h.g = 255;
 	h.b = 0;
 	h.type = 3;
 	SetTranlation(0.0, -254.5);
 	SetRotation(90.0 + smallArmAngle);
-	//SetTranlation(-62.5, -225.0);
 	DrawImage(IDB_BITMAP3, -62.5, -225.0, h);
-	//SetTranlation(+62.5, +225.0);
-
 
 	h.type = -1;
 	SetTranlation(0.0, -188.0);
 	SetRotation(-90 + handAngle);
-	//SetTranlation(-37.5, -62.5);
 	DrawImage(IDB_BITMAP4, -37, -62, h);
-	//SetTranlation(+37.5, +62.5);
-
 
 	h.type = -1;
 	MirrorVertical();
 	SetRotation(180 + 2.0*handAngle);
-	//SetTranlation(-36.5, -62.5);
 	DrawImage(IDB_BITMAP4, -36, -62, h);
-	//SetTranlation(+36.5, +62.5);
-
-	// TODO: add draw code for native data here
-	//SetTranlation(0, 0, false);
-	//DrawGrid();
 }
 
 
