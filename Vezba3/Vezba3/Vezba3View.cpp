@@ -308,10 +308,10 @@ void CVezba3View::OnDraw(CDC* pDC)
 
 	DrawGrid();
 
-	SetTranlation(425.0, 425.0);
-	SetRotation(-90.0);
 	Hatch h;
 	h.type = -1;
+	SetTranlation(425.0, 425.0);
+	SetRotation(-90.0);
 	DrawImage(IDB_BITMAP1, -100.0, -37.5, h);
 
 	h.r = 255;
